@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de llegada</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #0d6efd, #6610f2);
+            height: 100vh;
+        }
+
+        .turno {
+            font-size: 48px;
+            font-weight: bold;
+            color: #198754;
+        }
+    </style>
+</head>
+
+<body class="d-flex justify-content-center align-items-center">
+
+<div class="card shadow-lg p-4 text-center" style="max-width: 420px; width: 100%;">
+
+    <h4 class="fw-bold mb-2">📱 Registro de Llegada</h4>
+    <p class="text-muted mb-4">Escanee el QR y registre su ingreso</p>
+
+    <form method="POST">
+        <div class="mb-3">
+            <input type="text"
+                   name="nombre"
+                   class="form-control form-control-lg"
+                   placeholder="Nombre y Apellidos"
+                   required>
+        </div>
+
+        <div class="mb-3">
+            <input type="text"
+                   name="dni"
+                   class="form-control form-control-lg"
+                   placeholder="DNI"
+                   required>
+        </div>
+
+        <button class="btn btn-primary btn-lg w-100">
+            Obtener turno
+        </button>
+    </form>
+
+    {% if turno %}
+        <div class="mt-4">
+            <div class="turno">
+                Turno {{ turno }}
+            </div>
+            <p class="text-muted mt-2">
+                Espere a ser llamado
+            </p>
+        </div>
+    {% endif %}
+
+</div>
+
+</body>
+</html>
