@@ -6,6 +6,7 @@ import qrcode
 import os
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
+from io import BytesIO
 
 # -----------------------------
 # CONFIGURACIÓN APP
@@ -111,21 +112,9 @@ def secretaria():
     datos = cursor.fetchall()
     conn.close()
 
-    return render_template("secretaria.html", datos=datos)
+    qr = generar_qr_base64()
 
-@socketio.on("atender_turno")
-def atender_turno(id_turno):
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("""
-        UPDATE orden_llegada
-        SET estado='ATENDIDO'
-        WHERE id=?
-    """, (id_turno,))
-    conn.commit()
-    conn.close()
-
-    emit("nuevo_turno", broadcast=True)
+    return render_template("secretaria.html", datos=datos, qr=qr)
 
 # -----------------------------
 # REGISTRO QR
@@ -167,12 +156,21 @@ def registrar():
 # -----------------------------
 # GENERAR QR DINÁMICO
 # -----------------------------
-def generar_qr():
+def generar_qr_base64():
+    import base64
+
     URL_PUBLICA = os.environ.get("RENDER_EXTERNAL_URL", "http://localhost:5000")
     url = URL_PUBLICA + "/registrar"
 
     img = qrcode.make(url)
-    img.save("qr_puerta.png")
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+
+    qr_base64 = base64.b64encode(buffer.getvalue()).decode()
+
+    return qr_base64
+
+
 
 # -----------------------------
 # HISTORIAL
@@ -288,7 +286,6 @@ if __name__ == "__main__":
     # SOLO ejecutar estas funciones en local, NO en Render
     if os.environ.get("RENDER") is None:
         actualizar_db()
-        generar_qr()
 
     port = int(os.environ.get("PORT", 5000))
 
