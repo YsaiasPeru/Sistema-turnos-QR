@@ -14,13 +14,14 @@ import base64
 # -----------------------------
 app = Flask(__name__)
 app.secret_key = "clave_secreta"
-socketio = SocketIO(app, async_mode="eventlet")
+socketio = SocketIO(app, cors_allowed_origins="*")
+
 
 # -----------------------------
 # BASE DE DATOS
 # -----------------------------
 def get_db():
-    return sqlite3.connect("database.db")
+    return sqlite3.connect("database.db", check_same_thread=False)
 
 def init_db():
     conn = get_db()
