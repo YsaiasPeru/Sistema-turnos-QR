@@ -14,8 +14,7 @@ import base64
 # -----------------------------
 app = Flask(__name__)
 app.secret_key = "clave_secreta"
-socketio = SocketIO(app, cors_allowed_origins="*")
-
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 
 # -----------------------------
 # BASE DE DATOS
@@ -171,11 +170,10 @@ def registrar():
         conn.commit()
         conn.close()
 
-        socketio.emit("nuevo_turno", broadcast=True)
+        # ✅ RENDER COMPATIBLE
+        socketio.emit("nuevo_turno")
 
     return render_template("registrar.html", turno=turno)
-
-
 
 # -----------------------------
 # HISTORIAL
