@@ -166,9 +166,11 @@ def registrar():
         conn.commit()
         conn.close()
 
-        emit("nuevo_turno", broadcast=True)
+        # ✔ CORRECCIÓN CLAVE PARA RENDER
+        socketio.emit("nuevo_turno", broadcast=True)
 
     return render_template("registrar.html", turno=turno)
+
 
 # -----------------------------
 # HISTORIAL
