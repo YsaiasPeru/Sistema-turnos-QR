@@ -284,13 +284,16 @@ def reporte_pdf(tipo):
 # -----------------------------
 if __name__ == "__main__":
     init_db()
-    actualizar_db()
-    generar_qr()
+
+    # SOLO ejecutar estas funciones en local, NO en Render
+    if os.environ.get("RENDER") is None:
+        actualizar_db()
+        generar_qr()
 
     port = int(os.environ.get("PORT", 5000))
 
-    socketio = SocketIO(app, async_mode="threading", cors_allowed_origins="*")
-    socketio.run(app), host=""
+    socketio.run(app, host="0.0.0.0", port=port)
+
 
     
 
