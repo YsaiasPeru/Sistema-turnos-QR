@@ -7,6 +7,7 @@ import os
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from io import BytesIO
+import base64
 
 # -----------------------------
 # CONFIGURACIÓN APP
@@ -53,17 +54,6 @@ def init_db():
     conn.commit()
     conn.close()
 
-# Para bases antiguas
-def actualizar_db():
-    conn = get_db()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("ALTER TABLE orden_llegada ADD COLUMN nombre TEXT")
-    except:
-        pass
-    conn.commit()
-    conn.close()
-
 # -----------------------------
 # LOGIN
 # -----------------------------
@@ -94,7 +84,20 @@ def logout():
     return redirect("/")
 
 # -----------------------------
-# SECRETARIA (TIEMPO REAL)
+# GENERAR QR BASE64
+# -----------------------------
+def generar_qr_base64():
+    URL_PUBLICA = os.environ.get("RENDER_EXTERNAL_URL", "http://localhost:5000")
+    url = URL_PUBLICA + "/registrar"
+
+    qr = qrcode.make(url)
+    buffer = BytesIO()
+    qr.save(buffer, format="PNG")
+
+    return base64.b64encode(buffer.getvalue()).decode()
+
+# -----------------------------
+# SECRETARIA
 # -----------------------------
 @app.route("/secretaria")
 def secretaria():
@@ -115,6 +118,20 @@ def secretaria():
     qr = generar_qr_base64()
 
     return render_template("secretaria.html", datos=datos, qr=qr)
+
+@socketio.on("atender_turno")
+def atender_turno(id_turno):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE orden_llegada
+        SET estado='ATENDIDO'
+        WHERE id=?
+    """, (id_turno,))
+    conn.commit()
+    conn.close()
+
+    emit("nuevo_turno", broadcast=True)
 
 # -----------------------------
 # REGISTRO QR
@@ -152,25 +169,6 @@ def registrar():
         emit("nuevo_turno", broadcast=True)
 
     return render_template("registrar.html", turno=turno)
-
-# -----------------------------
-# GENERAR QR DINÁMICO
-# -----------------------------
-def generar_qr_base64():
-    import base64
-
-    URL_PUBLICA = os.environ.get("RENDER_EXTERNAL_URL", "http://localhost:5000")
-    url = URL_PUBLICA + "/registrar"
-
-    img = qrcode.make(url)
-    buffer = BytesIO()
-    img.save(buffer, format="PNG")
-
-    qr_base64 = base64.b64encode(buffer.getvalue()).decode()
-
-    return qr_base64
-
-
 
 # -----------------------------
 # HISTORIAL
@@ -290,6 +288,8 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
 
     socketio.run(app, host="0.0.0.0", port=port)
+
+
 
 
     
