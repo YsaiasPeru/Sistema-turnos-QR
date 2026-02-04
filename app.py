@@ -142,8 +142,12 @@ def registrar():
     turno = None
 
     if request.method == "POST":
-        nombre = request.form["nombre"]
-        dni = request.form["dni"]
+        nombre = request.form.get("nombre")
+        dni = request.form.get("dni")
+
+        if not nombre or not dni:
+            return "Faltan datos", 400
+
         fecha = datetime.now().strftime("%Y-%m-%d")
         hora = datetime.now().strftime("%H:%M:%S")
 
@@ -167,10 +171,10 @@ def registrar():
         conn.commit()
         conn.close()
 
-        # ✔ CORRECCIÓN CLAVE PARA RENDER
         socketio.emit("nuevo_turno", broadcast=True)
 
     return render_template("registrar.html", turno=turno)
+
 
 
 # -----------------------------
